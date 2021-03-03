@@ -7,6 +7,7 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(cache = TRUE)
 library(rethinking)
 library(truncnorm)
 set.seed(100)
@@ -77,12 +78,12 @@ Here are some priors which we think are better suited. First, set the mean for o
 set.seed(100)
 N <- 100
 a <- rnorm(N, 50, 10)
-b <- rlnorm(N, -4, 1)
+b <- rlnorm(N, -5, 2)
 plot(NULL, xlim=range(d$x), ylim=c(-200,200), xlab="LOC", ylab="Measure")
 abline(h=0, lty=2)
 abline(h=100, lty=2)
 
-mtext( "a ~dnorm(50,10); b ~ dlnorm(-4,1)" )
+mtext( "a ~dnorm(50,10); b ~ dlnorm(-5,2)" )
 xbar <- mean(d$x)
 for ( i in 1:N ) curve( a[i] + b[i]*(x - xbar) ,
     from=min(d$x) , to=max(d$x) , add=TRUE ,
@@ -104,7 +105,7 @@ m <- ulam(
     y ~ dnorm(mu, sigma),
     mu <- alpha + b_loc * x,
     alpha ~ dnorm(50, 10),
-    b_loc ~ dlnorm(-4, 1),
+    b_loc ~ dlnorm(-5, 2),
     sigma ~ dexp(1)
 ), data = d, cores = 4, chains = 4, cmdstan = TRUE, refresh = 0, iter = 5e3)
 ```
@@ -112,7 +113,7 @@ m <- ulam(
 Check the parameter estimates.
 
 ```{r}
-precis(m)
+round(precis(m), 2)
 ```
 
 `alpha` is estimated to `r round(precis(m)[1,1],2)` (in our randomly generated sample it's `r round(mean(d$y),2)`), while the `sigma` parameter is estimated to `r round(precis(m)[3,1],2)`, which is close to what we used when generating random numbers (i.e., $15$). `b_loc` is very close to zero, as one could expect. In summary, we have decent recovery.
@@ -133,25 +134,56 @@ precis(d)
 
 So, $n=$ `r nrow(d)`, and our outcome $\bar{y} =$  `r round(precis(d)[1,1],2)`, while $\bar{x} \approx 320$.
 
-Sample using empirical data.
+Sample two models using empirical data. One is the null model, $\mathcal{M}_0$, consisting only of an intercept. The other is a model with our predictor, $\mathcal{M}_1$.
 
 ```{r, warning=FALSE, message=FALSE}
 set.seed(100)
 d$x <- d$x - mean(d$x) # center the values
 
-m <- ulam(
+m0 <- ulam(
+  alist(
+    y ~ dnorm(mu, sigma), # y is our outcome, i.e., the measure
+    mu <- alpha, # only intercept
+    alpha ~ dnorm(50, 10),
+    sigma ~ dexp(1)
+), data = d, cores = 4, chains = 4, cmdstan = TRUE, refresh = 0, iter = 5e3, log_lik = TRUE)
+
+m1 <- ulam(
   alist(
     y ~ dnorm(mu, sigma), # y is our outcome, i.e., the measure
     mu <- alpha + b_loc * x, # x is our predictor LOC
     alpha ~ dnorm(50, 10),
-    b_loc ~ dlnorm(-4, 1),
+    b_loc ~ dlnorm(-5, 2),
     sigma ~ dexp(1)
-), data = d, cores = 4, chains = 4, cmdstan = TRUE, refresh = 0, iter = 5e3)
-
+), data = d, cores = 4, chains = 4, cmdstan = TRUE, refresh = 0, iter = 5e3, log_lik = TRUE)
 ```
 
 ```{r}
-precis(m)
+c <- compare(m0, m1, func=LOO)
+round(c, 2)
 ```
 
-The intercept, `alpha`, is estimated to be `r round(precis(m)[1,1], 2)` with a $95$% Credible Interval between `r round(precis(m)[1,3], 2)` and `r round(precis(m)[1,4], 2)`, while our slope, `b_loc` is estimated to `r round(precis(m)[2,1], 2)` (and it's most likely positive since the $95$% CI does not cross zero, i.e., columns $3$--$4$). Finally, `sigma` is estimated to be `r round(precis(m)[3,1], 2)` $\mathrm{CI}_{95\%}$ [`r round(precis(m)[3,3], 2)`,`r round(precis(m)[3,4],2)`].
+Well, well$\ldots$ It seems that adding the predictor doesn't make much difference concerning out of sample predictons. The difference in the information criterion $\mathrm{dPSIS} is `r c[2,3]`, while the difference in standard error is `r c[2,4]`. We can calculate a 95% interval for this,
+
+```{r}
+# dPSIS + interval * dSE * 95% z-value
+c[2,4] + c(-1,1) * c[2,4] * 1.96
+```
+
+The interval is clearly crossing zero and, thus, we conclude that adding the predictor LOC doesn't do much for out of sample predictions compared to only have a null model with a general intercept.
+
+If one would be interested in measuring the effect of LOC, then it might still be worthwhile keeping it in a model. 
+
+In software engineering researchers seems to be worried about **omitted variable bias**, i.e., we are worried about missing a variable which we'd like to include, leading to studies including lots of variables, which is questionable at best. The problem is that **included variable bias** is just as dangerous where, at many times, confounding variables might sneak in and affect the estimations.
+
+As a final note, let's compare the estimates we got from both models,
+
+```{r}
+round(precis(m0), 2)
+round(precis(m1), 2)
+```
+
+For both models `alpha` and `sigma` are estimated very similarly. For $\mathcal{M}_1$, the intercept `alpha` is estimated to be `r round(precis(m1)[1,1], 2)` with a $95$% Credible Interval between `r round(precis(m1)[1,3], 2)` and `r round(precis(m1)[1,4], 2)`, while our slope, `b_loc` is estimated to `r round(precis(m1)[2,1], 2)` (we would claim that even though `b_loc` $95$% CI does not cross zero, i.e., columns $3$--$4$, there is likely no effect). Finally, `sigma` is estimated to be `r round(precis(m1)[3,1], 2)` $\mathrm{CI}_{95\%}$ [`r round(precis(m1)[3,3], 2)`,`r round(precis(m1)[3,4],2)`].
+
+Taking only out of sample predictions into account and forced to pick "one model to rule them all", we would opt for $\mathcal{M}_0$. Why? It provides virtually the same out of sample prediction capabilities, while being simpler and easier to understand.
+
