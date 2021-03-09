@@ -163,7 +163,7 @@ c <- compare(m0, m1, func=LOO)
 round(c, 2)
 ```
 
-Well, well$\ldots$ It seems that adding the predictor doesn't make much difference concerning out of sample predictons. The difference in the information criterion $\mathrm{dPSIS} is `r c[2,3]`, while the difference in standard error is `r c[2,4]`. We can calculate a 95% interval for this,
+Well, well$\ldots$ It seems that adding the predictor doesn't make much difference concerning out of sample predictions. The difference in the information criterion $\mathrm{dPSIS} is `r c[2,3]`, while the difference in standard error is `r c[2,4]`. We can calculate a 95% interval for this,
 
 ```{r}
 # dPSIS + interval * dSE * 95% z-value
@@ -174,16 +174,24 @@ The interval is clearly crossing zero and, thus, we conclude that adding the pre
 
 If one would be interested in measuring the effect of LOC, then it might still be worthwhile keeping it in a model. 
 
-In software engineering researchers seems to be worried about **omitted variable bias**, i.e., we are worried about missing a variable which we'd like to include, leading to studies including lots of variables, which is questionable at best. The problem is that **included variable bias** is just as dangerous where, at many times, confounding variables might sneak in and affect the estimations.
+In software engineering, researchers seem to be worried about **omitted variable bias**, i.e., we are worried about missing a variable which we'd like to include, leading to studies including lots of variables, which is questionable at best. The problem is that **included variable bias** is just as dangerous where, at many times, confounding variables might sneak in and affect the estimations.
 
 As a final note, let's compare the estimates we got from both models,
 
 ```{r}
-round(precis(m0), 2)
-round(precis(m1), 2)
+round(precis(m0), 3)
+round(precis(m1), 3)
 ```
 
-For both models `alpha` and `sigma` are estimated very similarly. For $\mathcal{M}_1$, the intercept `alpha` is estimated to be `r round(precis(m1)[1,1], 2)` with a $95$% Credible Interval between `r round(precis(m1)[1,3], 2)` and `r round(precis(m1)[1,4], 2)`, while our slope, `b_loc` is estimated to `r round(precis(m1)[2,1], 2)` (we would claim that even though `b_loc` $95$% CI does not cross zero, i.e., columns $3$--$4$, there is likely no effect). Finally, `sigma` is estimated to be `r round(precis(m1)[3,1], 2)` $\mathrm{CI}_{95\%}$ [`r round(precis(m1)[3,3], 2)`,`r round(precis(m1)[3,4],2)`].
+For both models `alpha` and `sigma` are estimated very similarly. For $\mathcal{M}_1$, the intercept `alpha` is estimated to be `r round(precis(m1)[1,1], 2)` with a $95$% Credible Interval between `r round(precis(m1)[1,3], 1)` and `r round(precis(m1)[1,4], 1)`, while our slope, `b_loc` is estimated to `r round(precis(m1)[2,1], 1)` (we would claim that even though `b_loc` $95$% CI does not cross zero, i.e., columns $3$--$4$, there is likely no effect). Finally, `sigma` is estimated to be `r round(precis(m1)[3,1], 1)` $\mathrm{CI}_{95\%}$ [`r round(precis(m1)[3,3], 1)`,`r round(precis(m1)[3,4], 1)`].
 
 Taking only out of sample predictions into account and forced to pick "one model to rule them all", we would opt for $\mathcal{M}_0$. Why? It provides virtually the same out of sample prediction capabilities, while being simpler and easier to understand.
+<!--
+## Posterior predictive checks
 
+Plot our empirical data (blue points) with the 90% credible interval and the estimated mean. 
+
+```{r}
+postcheck(m1)
+```
+-->

@@ -327,25 +327,36 @@ round(c, 2)</code></pre>
 <pre><code>##       PSIS    SE dPSIS  dSE pPSIS weight
 ## m1 1226.43 19.24  0.00   NA  2.52   0.61
 ## m0 1227.31 19.24  0.87 1.92  2.05   0.39</code></pre>
-<p>Well, well<span class="math inline">\(\ldots\)</span> It seems that adding the predictor doesn’t make much difference concerning out of sample predictons. The difference in the information criterion $ is 0.8747889, while the difference in standard error is 1.9172981. We can calculate a 95% interval for this,</p>
+<p>Well, well<span class="math inline">\(\ldots\)</span> It seems that adding the predictor doesn’t make much difference concerning out of sample predictions. The difference in the information criterion $ is 0.8747889, while the difference in standard error is 1.9172981. We can calculate a 95% interval for this,</p>
 <pre class="r"><code># dPSIS + interval * dSE * 95% z-value
 c[2,4] + c(-1,1) * c[2,4] * 1.96</code></pre>
 <pre><code>## [1] -1.840606  5.675202</code></pre>
 <p>The interval is clearly crossing zero and, thus, we conclude that adding the predictor LOC doesn’t do much for out of sample predictions compared to only have a null model with a general intercept.</p>
 <p>If one would be interested in measuring the effect of LOC, then it might still be worthwhile keeping it in a model.</p>
-<p>In software engineering researchers seems to be worried about <strong>omitted variable bias</strong>, i.e., we are worried about missing a variable which we’d like to include, leading to studies including lots of variables, which is questionable at best. The problem is that <strong>included variable bias</strong> is just as dangerous where, at many times, confounding variables might sneak in and affect the estimations.</p>
+<p>In software engineering, researchers seem to be worried about <strong>omitted variable bias</strong>, i.e., we are worried about missing a variable which we’d like to include, leading to studies including lots of variables, which is questionable at best. The problem is that <strong>included variable bias</strong> is just as dangerous where, at many times, confounding variables might sneak in and affect the estimations.</p>
 <p>As a final note, let’s compare the estimates we got from both models,</p>
-<pre class="r"><code>round(precis(m0), 2)</code></pre>
-<pre><code>##        mean   sd  5.5% 94.5%   n_eff Rhat4
-## alpha 42.00 0.77 40.78 43.23 7287.98     1
-## sigma  9.88 0.53  9.08 10.76 6851.03     1</code></pre>
-<pre class="r"><code>round(precis(m1), 2)</code></pre>
-<pre><code>##        mean   sd  5.5% 94.5%   n_eff Rhat4
-## alpha 41.98 0.77 40.73 43.21 8396.90     1
-## b_loc  0.03 0.02  0.00  0.06 8337.24     1
-## sigma  9.85 0.52  9.03 10.72 7614.99     1</code></pre>
-<p>For both models <code>alpha</code> and <code>sigma</code> are estimated very similarly. For <span class="math inline">\(\mathcal{M}_1\)</span>, the intercept <code>alpha</code> is estimated to be 41.99 with a <span class="math inline">\(95\)</span>% Credible Interval between 40.76 and 43.25, while our slope, <code>b_loc</code> is estimated to 0.02 (we would claim that even though <code>b_loc</code> <span class="math inline">\(95\)</span>% CI does not cross zero, i.e., columns <span class="math inline">\(3\)</span>–<span class="math inline">\(4\)</span>, there is likely no effect). Finally, <code>sigma</code> is estimated to be 9.86 <span class="math inline">\(\mathrm{CI}_{95\%}\)</span> [9.04,10.73].</p>
-<p>Taking only out of sample predictions into account and forced to pick “one model to rule them all”, we would opt for <span class="math inline">\(\mathcal{M}_0\)</span>. Why? It provides virtually the same out of sample prediction capabilities, while being simpler and easier to understand.</p>
+<pre class="r"><code>round(precis(m0), 3)</code></pre>
+<pre><code>##         mean    sd   5.5%  94.5%    n_eff Rhat4
+## alpha 41.998 0.767 40.777 43.232 7287.984     1
+## sigma  9.883 0.529  9.075 10.764 6851.032     1</code></pre>
+<pre class="r"><code>round(precis(m1), 3)</code></pre>
+<pre><code>##         mean    sd   5.5%  94.5%    n_eff Rhat4
+## alpha 41.993 0.767 40.762 43.246 5784.951     1
+## b_loc  0.019 0.021  0.000  0.060 5925.926     1
+## sigma  9.856 0.526  9.044 10.735 5589.393     1</code></pre>
+<p>For both models <code>alpha</code> and <code>sigma</code> are estimated very similarly. For <span class="math inline">\(\mathcal{M}_1\)</span>, the intercept <code>alpha</code> is estimated to be 41.99 with a <span class="math inline">\(95\)</span>% Credible Interval between 40.8 and 43.2, while our slope, <code>b_loc</code> is estimated to 0 (we would claim that even though <code>b_loc</code> <span class="math inline">\(95\)</span>% CI does not cross zero, i.e., columns <span class="math inline">\(3\)</span>–<span class="math inline">\(4\)</span>, there is likely no effect). Finally, <code>sigma</code> is estimated to be 9.9 <span class="math inline">\(\mathrm{CI}_{95\%}\)</span> [9,10.7].</p>
+<p>Taking only out of sample predictions into account and forced to pick “one model to rule them all”, we would opt for <span class="math inline">\(\mathcal{M}_0\)</span>. Why? It provides virtually the same out of sample prediction capabilities, while being simpler and easier to understand. <!--
+## Posterior predictive checks
+
+Plot our empirical data (blue points) with the 90% credible interval and the estimated mean. 
+
+
+```r
+postcheck(m1)
+```
+
+<img src="index_files/figure-html/unnamed-chunk-14-1.png" width="672" /><img src="index_files/figure-html/unnamed-chunk-14-2.png" width="672" /><img src="index_files/figure-html/unnamed-chunk-14-3.png" width="672" /><img src="index_files/figure-html/unnamed-chunk-14-4.png" width="672" /><img src="index_files/figure-html/unnamed-chunk-14-5.png" width="672" /><img src="index_files/figure-html/unnamed-chunk-14-6.png" width="672" /><img src="index_files/figure-html/unnamed-chunk-14-7.png" width="672" /><img src="index_files/figure-html/unnamed-chunk-14-8.png" width="672" /><img src="index_files/figure-html/unnamed-chunk-14-9.png" width="672" />
+--></p>
 </div>
 <div class="footnotes">
 <hr />
