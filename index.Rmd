@@ -208,9 +208,9 @@ plot(compare(m0, m1, m2, m3, func=LOO), 2)
 round(precis(m3, prob = 0.95, depth = 2), 2)
 ```
 
-Concerning our three languages we see that, on the arbitrary 95%-level, Language $3$, i.e., `a[3]`, has a clear negative effect, while the other two languages have weak negative effects. We have an estimate and a credible interval for `a[3]` but how does the posterior probability distributions for all three languages look like?
+Concerning our three languages we see that, on the arbitrary 95%-level, Language $3$, i.e., `a[3]`, has a clear negative effect, while the other two languages have weak negative effects. We have an estimate and a credible interval for `a[3]` but let's see how the posterior probability distributions for all three languages look like?
 
-```{r fig.height=4, fig.width=4, fig.align='center'}
+```{r, echo=FALSE, fig.height=4, fig.width=4, fig.align='center'}
 post <- extract.samples(m3)
 par(mfrow = c(3,1))
 par(mar = c(2, 2, 2, 2))
