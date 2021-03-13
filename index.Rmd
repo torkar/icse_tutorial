@@ -51,7 +51,7 @@ The outcome consists of positive integers, i.e., $\mathbb{N}^+$, so a count goin
 
 ### Epistemological assumptions
 
-From an information theoretical point of view we want to use a likelihood that allows the data to happen in the most ways, i.e., it's doesn't constrain the story data wantS to tell us. Given the above, we basically have two options: $\mathsf{Poisson}(\lambda)$ and $\mathsf{Normal}(\mu,\sigma)$.
+From an information theoretical point of view we want to use a likelihood that allows the data to happen in the most ways, i.e., it doesn't constrain the story data wants to tell us. Given the above, we basically have two options: $\mathsf{Poisson}(\lambda)$ and $\mathsf{Normal}(\mu,\sigma)$.
 
 Concerning $\mathsf{Poisson}(\lambda)$ there's a requirement that the mean and variance (which the $\lambda$ parameter represents) are equal. This is not the case for the outcome `Effort`,
 
@@ -60,7 +60,7 @@ mean(f$Effort)
 var(f$Effort)
 ```
 
-this indicates that the variance needs to be modeled separately. The common way to do this is to use a mixture distribution, i.e., $\mathsf{Negative}\text{-}\mathsf{Binomial}(\lambda, \phi)$ a.k.a. $\mathsf{Gamma}\text{-}\mathsf{Poisson}(\lambda, \phi)$.
+this indicates that the variance needs to be modeled separately. The common way to do this is to use a mixture distribution, i.e., $\mathsf{Negative}\text{-}\mathsf{Binomial}(\lambda, \phi)$, a.k.a. $\mathsf{Gamma}\text{-}\mathsf{Poisson}(\lambda, \phi)$.
 
 The other way would be to assume a $\mathsf{Normal}$ likelihood (a.k.a. $\mathsf{Gaussian}$), but it expects real, $\mathbb{R}$, numbers. This we can, actually, accomodate by standardizing the outcome (i.e., remove the mean from each value and divide by the variable's standard deviation),
 
@@ -77,7 +77,7 @@ f$Effort <- scale(f$Effort)
 
 ## Initial models
 
-Let us design four models and see how well they compare concerning out of sample predictions. Except for the first model, do prior and posterior predictive checks.
+Let us design four models and see how well they compare concerning out of sample predictions. Except for the first model, we'll do prior predictive checks on all models. On the final model we'll also do a visual posterior predictive check. For all models we check three diagnostics, i.e., $\widehat{R}$, effective sample size, and traceplots. 
 
 ### $\mathcal{M}_0$
 
@@ -208,7 +208,7 @@ plot(compare(m0, m1, m2, m3, func=LOO), 2)
 round(precis(m3, prob = 0.95, depth = 2), 2)
 ```
 
-Concerning our three languages we see that, on the arbitrary 95%-level, Language $3$, i.e., `a[3]` has a negative effect, while the other two languages have no effect. We have an estimate and a credible interval for `a[3]` but how does the posterior probability distributions for all three languages look like?
+Concerning our three languages we see that, on the arbitrary 95%-level, Language $3$, i.e., `a[3]`, has a clear negative effect, while the other two languages have weak negative effects. We have an estimate and a credible interval for `a[3]` but how does the posterior probability distributions for all three languages look like?
 
 ```{r fig.height=4, fig.width=4, fig.align='center'}
 post <- extract.samples(m3)
@@ -237,7 +237,7 @@ axis(side=1, at=c(-3,-2,-1,0,1,2,3))
 
 How about "average" language effect (uncertainty is 89% in shaded area)?
 
-```{r, fig.align='center'}
+```{r, echo = FALSE, fig.align='center'}
 p_link_abar <- function(Language) {
     res <- with(post, a_bar + l[,Language])
     return(res)
@@ -259,7 +259,7 @@ shade(p_ci , 1:3)
 
 Marginal effect, i.e., how variable different languages are (89% uncertainty in shaded area).
 
-```{r, fig.align='center'}
+```{r, echo = FALSE, fig.align='center'}
 a_sim <- with( post , rnorm( length(post$a_bar) , a_bar , sigma_l ) )
 p_link_asim <- function( Language ) {
     res <- with( post , a_sim + l[,Language] )
@@ -283,7 +283,7 @@ shade(p_ci , 1:3)
 
 Simulated languages, i.e., the effect of language with the variation among team and manager experience.
 
-```{r, fig.align='center'}
+```{r, echo = FALSE, fig.align='center'}
 plot( NULL , main = "simulated languages", xlab="" , ylab="effect" ,
     ylim=c(-5,5), xaxt="n", xlim=c(1,3))
 axis(1, at = c(1.0,2.0,3.0), labels = c("Language 1","Language 2", "Language 3"))
@@ -292,7 +292,7 @@ for ( i in 1:50 ) lines( 1:3 , p_raw_asim[i,] , col=grau(0.25) , lwd=2 )
 
 How does the language effect look like when we alter **team** experience (min and max values), while keeping manager experience to it's mean ($\mu = 2.6$ years)?
 
-```{r, fig.align='center', fig.height=5, fig.width=5}
+```{r, echo = FALSE, fig.align='center', fig.height=5, fig.width=5}
 d_pred <- data.frame(
     Language = c(1,1), # language 1
     TeamExp = c(-1.5,1.5), # min/max
@@ -367,7 +367,7 @@ shade(p_ci_3 , 1:2)
 
 Next, how does the language effect look like when we alter **manager** experience (min and max values), while keeping team experience to it's mean ($\mu = 2.3$ years)?
 
-```{r, fig.align='center', fig.height=5, fig.width=5}
+```{r, echo = FALSE, fig.align='center', fig.height=5, fig.width=5}
 d_pred <- data.frame(
     Language = c(1, 1), # language 1
     ManagerExp = c(-1.3, 3.0), # min/max
