@@ -1,6 +1,6 @@
 ---
-title: "ICSE-tutorial"
-author: "Torkar, Furia, and Feldt"
+title: "Bayesian Data Analysis in Empirical Software Engineering"
+author: "R. Torkar, C. A. Furia, and R. Feldt"
 date: "Version: `r Sys.time()`"
 output: html_document
 editor_options: 
@@ -22,7 +22,7 @@ set.seed(100)
 
 ## The data and the problem
 
-For this example we'll make use of a dataset found in the PROMISE repository^[http://promise.site.uottawa.ca/SERepository/datasets/desharnais.arff] donated by Prof. Martin Shepperd in 2005, and originally from J.&nbsp;M.&nbsp;Desharnais' master thesis. We would like to predict `Effort` (our outcome) for implementing a software artifact, given programming language, team experience, and manager experience (our predictors).
+For this example we'll make use of a dataset found in the PROMISE repository donated by Prof. Martin Shepperd in 2005, and originally from J.&nbsp;M.&nbsp;Desharnais' master thesis.^[http://promise.site.uottawa.ca/SERepository/datasets/desharnais.arff] We would like to predict `Effort` (our outcome) for implementing a software artifact, given programming language, team experience, and manager experience (our predictors).
 
 ```{r}
  f <- read.arff("data/desharnais.arff")
