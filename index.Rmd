@@ -235,9 +235,9 @@ axis(side=1, at=c(-3,-2,-1,0,1,2,3))
 
 ## Understanding effects better through simulation
 
-How about "average" language effect (uncertainty is 89% in shaded area)?
+<!-- How about "average" language effect (uncertainty is 89% in shaded area)?-->
 
-```{r, echo = FALSE, fig.align='center'}
+```{r, echo = FALSE, eval=FALSE, fig.align='center'}
 p_link_abar <- function(Language) {
     res <- with(post, a_bar + l[,Language])
     return(res)
