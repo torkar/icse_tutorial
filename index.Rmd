@@ -39,7 +39,7 @@ For this example we'll make use of a dataset found in the PROMISE repository don
  str(f)
 ```
 
-So, from the top, we have team (`TeamExp`) and manager (`ManagerExp`) experience in years, `Effort` in hours, and programming `Language` used, here as a factor with three levels. In total we have `r nrow(f)` rows (or observations, if you will).
+So, from the top, we have team (`TeamExp`) and manager (`ManagerExp`) experience in years, `Effort` in hours, and programming `Language` used, here as a factor with three levels, which we've converted to an integer $1,\ldots,3$. In total we have `r nrow(f)` rows (or observations, if you will).
 
 ## Assumptions concerning data generation process
 
@@ -60,13 +60,7 @@ mean(f$Effort)
 var(f$Effort)
 ```
 
-this indicates that the variance needs to be modeled separately. The common way to do this is to use a mixture distribution, i.e., $\mathsf{Negative}\text{-}\mathsf{Binomial}(\lambda, \phi)$, a.k.a. $\mathsf{Gamma}\text{-}\mathsf{Poisson}(\lambda, \phi)$.
-
-The other way would be to assume a $\mathsf{Normal}$ likelihood (a.k.a. $\mathsf{Gaussian}$), but it expects real, $\mathbb{R}$, numbers. This we can, actually, accomodate by standardizing the outcome (i.e., remove the mean from each value and divide by the variable's standard deviation),
-
-```{r}
-f$Effort <- scale(f$Effort)
-```
+this indicates that the variance needs to be modeled separately. The common way to do this is to use a mixture distribution, i.e., $\mathsf{Negative}\text{-}\mathsf{Binomial}(\lambda, \phi)$, a.k.a. $\mathsf{Gamma}\text{-}\mathsf{Poisson}(\lambda, \phi)$, but leave this for now and take an easier route for pedagogical reasons.
 
 > When all we know or are willing to say about a distribution of measures
 > (measures are continuous values on the real number line) is their mean and
@@ -75,13 +69,23 @@ f$Effort <- scale(f$Effort)
 >
 > &#8212; Richard McElreath
 
+The other way would be to assume a $\mathsf{Normal}$ likelihood (a.k.a. $\mathsf{Gaussian}$), but it expects real, $\mathbb{R}$, numbers. This we can, actually, accommodate by standardizing the outcome (i.e., remove the mean from each value and divide by the variable's standard deviation),
+
+```{r}
+f$Effort <- scale(f$Effort)
+```
+
+Now all values are centered on $0$, and the variable has a standard deviation of $1$.
+
 ## Initial models
 
-Let us design four models and see how well they compare concerning out of sample predictions. Except for the first model, we'll do prior predictive checks on all models. On the final model we'll also do a visual posterior predictive check. For all models we check three diagnostics, i.e., $\widehat{R}$, effective sample size, and traceplots. 
+Let us design a set of models $\mathbf{M}=\{\mathcal{M}_0,\ldots,\mathcal{M}_3\}$ and see how well they compare concerning out of sample predictions. Except for the first model, $\mathcal{M}_0$, we'll do prior predictive checks on all models. On the final model we'll also do a visual posterior predictive check (which we don't show for the other models to save space). For all models we check three diagnostics, i.e., $\widehat{R}$, effective sample size, and traceplots, but we only report it for the first model so you can see what it looks like.
 
 ### $\mathcal{M}_0$
 
-```{r, message=FALSE, warning=FALSE, results='hide'}
+Sample the model with empirical data. We sample using four independent chains, which then are used to indicate if we have reached a stationary posterior distribution.
+
+```{r m0, message=FALSE, warning=FALSE, results='hide'}
 m0 <- ulam(
   alist(
     Effort ~ normal(mu, sigma),
@@ -92,9 +96,25 @@ m0 <- ulam(
 )
 ```
 
+Check estimates and diagnostics.
+
+```{r}
+round(precis(m0), 2)
+```
+
+$\alpha$ is estimated to be $0$, and $\sigma$ is estimated to $1$, which is not strange since we standardized the outcome. $\widehat{R} < 1.01$ and the effective sample size (`n_eff`) for each parameter is in the thousands, so all is well there. Let's also have a look at the traceplots for our estimated parameters.
+
+```{r, echo=FALSE}
+traceplot(m0)
+```
+
+This is how healthy traceplots should look like, i.e., four chains mixing well making the plot look like a blurry band of colors.
+
 ### $\mathcal{M}_1$
 
-```{r, message=FALSE, warning=FALSE, results='hide'}
+Next, we add a predictor.
+
+```{r m1, message=FALSE, warning=FALSE, results='hide'}
 m1 <- ulam(
   alist(
     Effort ~ normal(mu, sigma),
@@ -107,10 +127,14 @@ m1 <- ulam(
 )
 ```
 
+Let us also sample only from the priors so we can do prior predictive checks.
+
 ```{r, message=FALSE, warning=FALSE, results='hide'}
 prior <- extract.prior(m1) # sample only from priors
 mu <- link(m1, post = prior, data = list(TeamExp = c(-2,2)))
 ```
+
+Plot our priors on the outcome space.
 
 ```{r m1pri, fig.align='center'}
 plot(NULL, xlim = c(-2,2), ylim = c(-2,2), 
@@ -120,17 +144,19 @@ plot(NULL, xlim = c(-2,2), ylim = c(-2,2),
 for(i in 1:50) lines(c(-2,2), mu[i,], col=col.alpha("black",0.4))
 ```
 
-Compare the above plot to the plot below where we've set $\alpha \sim \mathsf{Normal}(0,10)$ and $\beta_t \sim \mathsf{Normal}(0,5)$, which are common default priors.
+Compare the above plot to the plot below where we've set $\alpha \sim \mathsf{Normal}(0,10)$ and $\beta_t \sim \mathsf{Normal}(0,5)$, which are common default priors. In short, we would like to have more lines within sane values (remember the axes are scaled). The upper plot still allows some crazy values, but compared to the lower plot it's still much better.
 
 ```{r, echo=FALSE, out.width="70%", fig.align='center'}
 knitr::include_graphics("plots/default_priors.png")
 ```
 
-The $\widehat{R}$ looks ok (i.e. $<1.01$), and the effective sample size for each parameter is in the thousands.
+$\widehat{R} < 1.01$, and the effective sample size for each parameter is in the thousands.
 
 ### $\mathcal{M}_2$
 
-```{r, message=FALSE, warning=FALSE, results='hide'}
+Add yet another predictor.
+
+```{r m2, message=FALSE, warning=FALSE, results='hide'}
 m2 <- ulam(
   alist(
     Effort ~ normal(mu, sigma),
@@ -142,6 +168,8 @@ m2 <- ulam(
   iter = 5e3
 )
 ```
+
+Prior predictive checks.
 
 ```{r, message=FALSE, warning=FALSE, results='hide'}
 prior <- extract.prior(m2) # sample only from priors
@@ -157,7 +185,9 @@ for(i in 1:50) lines(c(-2,2), mu[i,], col=col.alpha("black",0.4))
 
 ### $\mathcal{M}_3$
 
-```{r, message=FALSE, warning=FALSE, results='hide'}
+Finally, we add the predictor `Language` as a varying intercept (it's categorical). This means that each language will have its own intercept (deviating from $\bar{a}$). We've done something else here, i.e., added $\sigma_l$ to the linear part. This is called non-centered parameterization (NCP). We use NCP to change the multidimensional landscape the sampler needs to explore. The initial model we designed showed that the sampler struggled exploring the landscape, by smuggling out $\sigma_l$ to the linear part we have the same model, but we've changed the posterior the sampler needs to expore.
+
+```{r m3, message=FALSE, warning=FALSE, results='hide'}
 m3 <- ulam(
   alist(
     Effort ~ normal(mu, sigma),
@@ -173,6 +203,8 @@ m3 <- ulam(
 )
 ```
 
+Prior predictive check.
+
 ```{r, message=FALSE, warning=FALSE, results='hide'}
 prior <- extract.prior(m3) # sample only from priors
 mu <- link(m3, post = prior, data = list(TeamExp = c(-2,2), 
@@ -186,32 +218,41 @@ plot(NULL, xlim = c(-2,2), ylim = c(-2,2), main = "Prior predictive check",
 for(i in 1:50) lines(c(-2,2), mu[i,], col=col.alpha("black",0.4))
 ```
 
+Posterior predictive check.
+
 ```{r postcheck, fig.align='center'}
 postcheck(m3, window=nrow(f))
 ```
 
-```{r}
-round(precis(m3, depth = 2), 2)
-```
+The vertical axis is the outcome, for each case in our dataset on the horizontal. The blue dots are the empirical data. The open circles are the posterior mean, with 90% interval, and the '+' symbol mark the 90% predicted interval. In some cases we see outliers (e.g. Case 77), which are outside the 90% predicted interval. This is not strange since we've used partial pooling. After all, if we want a perfect model for our empirical data, why not simply use the data as-is? Well, the answer to that question is: We will inadvertently overfit, i.e., learn too much from the empirical data, which will lead to a model that will break down when facing new data.
 
 ## Model comparison
+
+We now have a set of models $\mathbf{M}$, which we can compare using PSIS-LOO. The comparison will be relative(!) and will not indicate if we've found an optimal, 'true', model. It will simply rank the models according to their relative out of sample prediction capabilities.
 
 ```{r loo, warning=FALSE, message=FALSE, fig.align='center'}
 round(compare(m0, m1, m2, m3, func=LOO), 2)
 plot(compare(m0, m1, m2, m3, func=LOO), 2)
 ```
 
+What we see here, not surprisingly, is that $\mathcal{M}_3$ is considered the best model, even though we have more parameters in that model (models with more parameters are penalized). However, if we investigate the plot and table a bit closer we see that this is not a clear cut case. The difference between $\mathcal{M}_3$ and $\mathcal{M}_1$ (which is on second place) is $\text{dPSIS} \approx 1.3$ and the standard error is $\text{dSE} \approx 2.4$. Generally speaking, we would like to the difference to be at least $2$--$4$ dSE, i.e., dPSIS should be, preferably, $2.4 \cdot 4 = 9.6$, while in this case it's only $1.3$.
+
+The above tells us at least two things. First, $\mathcal{M}_1$ has, relatively speaking, better out of sample prediction capabilities than $\mathcal{M}_2$, i.e., `TeamExp` has better predictive power than `ManagerExp`, in our models. Second, there is really no significant difference between the four models. A simple general intercept model (i.e., $\mathcal{M}_0$) is almost as good as a model with all predictors (i.e., $\mathcal{M}_3$). Which model should one pick? Well, if understandability is important, the simplest model. However, we are explicitly interested in the effect language has on predictions. Let's define our master model to be $\mathcal{M}_3$, i.e., $\mahtcal{M} = \mathcal{M}_3$.
+
+```{r}
+m <- m3
+```
 
 ## Estimates for $\mathcal{M}_3$
 
 ```{r}
-round(precis(m3, prob = 0.95, depth = 2), 2)
+round(precis(m, prob = 0.95, depth = 2), 2)
 ```
 
 Concerning our three languages we see that, on the arbitrary 95%-level, Language $3$, i.e., `a[3]`, has a clear negative effect, while the other two languages have weak negative effects. We have an estimate and a credible interval for `a[3]` but let's see how the posterior probability distributions for all three languages look like?
 
 ```{r, echo=FALSE, fig.height=4, fig.width=4, fig.align='center'}
-post <- extract.samples(m3)
+post <- extract.samples(m)
 par(mfrow = c(3,1))
 par(mar = c(2, 2, 2, 2))
 plot(NULL, xlim = c(-3.5,3.5), ylim = c(0, 2.0), ylab = "Density", xlab = "", 
@@ -233,31 +274,13 @@ lines(c(0,0), c(0, 2.0), type = "l", col = alpha("red", 0.7))
 axis(side=1, at=c(-3,-2,-1,0,1,2,3))
 ```
 
+So the above are the posterior probability distributions for each language. 
+
 ## Understanding effects better through simulation
 
-<!-- How about "average" language effect (uncertainty is 89% in shaded area)?-->
+Let us take the posterior probability distribution and conduct simulations to better understand the effect of language.
 
-```{r, echo = FALSE, eval=FALSE, fig.align='center'}
-p_link_abar <- function(Language) {
-    res <- with(post, a_bar + l[,Language])
-    return(res)
-}
-p_raw <- sapply(1:3, function(i) p_link_abar(i))
-p_mu <- apply( p_raw , 2 , mean )
-p_ci <- apply( p_raw , 2 , PI )
-
-plot(NULL, xlab = "", 
-     ylab = "effect", 
-     main = "average language",
-     xaxt = "n",
-     xlim = c(1,3),
-     ylim = c(-2.5,2.5))
-axis(1, at = c(1.0, 2.0, 3.0), labels = c("Language 1","Language 2", "Language 3"), font = 2)
-lines(1:3, p_mu)
-shade(p_ci , 1:3)
-```
-
-Marginal effect, i.e., how variable different languages are (89% uncertainty in shaded area).
+Marginal effect, i.e., how variable different languages are (89% uncertainty in shaded area). Language $3$ seems to have a stronger negative effect, but given the uncertainty the question is if really matters at all?
 
 ```{r, echo = FALSE, fig.align='center'}
 a_sim <- with( post , rnorm( length(post$a_bar) , a_bar , sigma_l ) )
@@ -280,8 +303,7 @@ lines(1:3, p_mu)
 shade(p_ci , 1:3)
 ```
 
-
-Simulated languages, i.e., the effect of language with the variation among team and manager experience.
+Simulated languages, i.e., the effect of language with the variation among team and manager experience. Clearly there's a lot of variation here.
 
 ```{r, echo = FALSE, fig.align='center'}
 plot( NULL , main = "simulated languages", xlab="" , ylab="effect" ,
@@ -290,7 +312,7 @@ axis(1, at = c(1.0,2.0,3.0), labels = c("Language 1","Language 2", "Language 3")
 for ( i in 1:50 ) lines( 1:3 , p_raw_asim[i,] , col=grau(0.25) , lwd=2 )
 ```
 
-How does the language effect look like when we alter **team** experience (min and max values), while keeping manager experience to it's mean ($\mu = 2.6$ years)?
+How does the language effect look like when we alter **team** experience (min and max values), while keeping manager experience to it's mean ($\mu = 2.6$ years)? Below we see that for Language $3$ the uncertainty does not cross $0$, indicating that the effect is clearly negative, both for low and high experienced teams.
 
 ```{r, echo = FALSE, fig.align='center', fig.height=8, fig.width=5}
 d_pred <- data.frame(
@@ -365,7 +387,7 @@ lines(1:2, p_mu_3)
 shade(p_ci_3 , 1:2)
 ```
 
-Next, how does the language effect look like when we alter **manager** experience (min and max values), while keeping team experience to it's mean ($\mu = 2.3$ years)?
+Next, how does the language effect look like when we alter **manager** experience (min and max values), while keeping team experience to it's mean ($\mu = 2.3$ years)? Once again, Language $3$ the effect is clearly negative, for both low and high experienced managers.
 
 ```{r, echo = FALSE, fig.align='center', fig.height=8, fig.width=5}
 d_pred <- data.frame(
