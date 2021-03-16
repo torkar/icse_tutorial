@@ -102,13 +102,13 @@ Check estimates and diagnostics.
 round(precis(m0), 2)
 ```
 
-$\alpha$ is estimated to be $0$, and $\sigma$ is estimated to $1$, which is not strange since we standardized the outcome. $\widehat{R} < 1.01$ and the effective sample size (`n_eff`) for each parameter is in the thousands, so all is well there. Let's also have a look at the traceplots for our estimated parameters.
+$\alpha$ is estimated to be $0$, and $\sigma$ is estimated to $1$, which is not strange since we standardized the outcome. $\widehat{R} < 1.01$ and the effective sample size (`n_eff`) for each parameter is $>1000$, so all is well there. Let's also have a look at the traceplots for our estimated parameters.
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, warning=FALSE, message=FALSE, results='hide', fig.align='center'}
 traceplot(m0)
 ```
 
-This is how healthy traceplots should look like, i.e., four chains mixing well making the plot look like a blurry band of colors.
+This is how healthy traceplots should look like, i.e., four chains mixing well making the plot look like a blurry band of colors. The gray background indicates the warmup phase and those samples are not included in our posterior probability distribution.
 
 ### $\mathcal{M}_1$
 
@@ -235,9 +235,9 @@ round(compare(m0, m1, m2, m3, func=LOO), 2)
 plot(compare(m0, m1, m2, m3, func=LOO), 2)
 ```
 
-What we see here, not surprisingly, is that $\mathcal{M}_3$ is considered the best model, even though we have more parameters in that model (models with more parameters are penalized). However, if we investigate the plot and table a bit closer we see that this is not a clear cut case. The difference between $\mathcal{M}_3$ and $\mathcal{M}_1$ (which is on second place) is $\text{dPSIS} \approx 1.3$ and the standard error is $\text{dSE} \approx 2.4$. Generally speaking, we would like to the difference to be at least $2$--$4$ dSE, i.e., dPSIS should be, preferably, $2.4 \cdot 4 = 9.6$, while in this case it's only $1.3$.
+What we see here, not surprisingly, is that $\mathcal{M}_3$ is considered the best model, even though we have more parameters in that model (models with more parameters are penalized). However, if we investigate the plot and table a bit closer we see that this is not a clear cut case. The difference between $\mathcal{M}_3$ and $\mathcal{M}_1$ (which is on second place) is $\text{dPSIS} \approx 1.3$ and the standard error is $\text{dSE} \approx 2.4$. Generally speaking, we would like to the difference to be at least $2$--$4$ dSE, i.e., dPSIS should preferably be more than, $2.4 \cdot 4 = 9.6$, while in this case it's only $1.3$.
 
-The above tells us at least two things. First, $\mathcal{M}_1$ has, relatively speaking, better out of sample prediction capabilities than $\mathcal{M}_2$, i.e., `TeamExp` has better predictive power than `ManagerExp`, in our models. Second, there is really no significant difference between the four models. A simple general intercept model (i.e., $\mathcal{M}_0$) is almost as good as a model with all predictors (i.e., $\mathcal{M}_3$). Which model should one pick? Well, if understandability is important, the simplest model. However, we are explicitly interested in the effect language has on predictions. Let's define our master model to be $\mathcal{M}_3$, i.e., $\mahtcal{M} = \mathcal{M}_3$.
+The above tells us at least two things. First, $\mathcal{M}_1$ has, relatively speaking, better out of sample prediction capabilities than $\mathcal{M}_2$, i.e., `TeamExp` has better predictive power than `ManagerExp`, in our models. Second, there is really no significant difference between the four models. A simple general intercept model (i.e., $\mathcal{M}_0$) is almost as good as a model with all predictors (i.e., $\mathcal{M}_3$). Which model should one pick? Well, if understandability is important, the simplest model. However, we are explicitly interested in the effect language has on predictions. Let's define our master model to be $\mathcal{M}_3$, i.e., $\mathcal{M} = \mathcal{M}_3$.
 
 ```{r}
 m <- m3
