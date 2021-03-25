@@ -60,7 +60,8 @@ mean(f$Effort)
 var(f$Effort)
 ```
 
-this indicates that the variance needs to be modeled separately. The common way to do this is to use a mixture distribution, i.e., $\mathsf{Negative}\text{-}\mathsf{Binomial}(\lambda, \phi)$, a.k.a. $\mathsf{Gamma}\text{-}\mathsf{Poisson}(\lambda, \phi)$, but leave this for now and take an easier route for pedagogical reasons.
+this indicates that the variance needs to be modeled separately. The common way to do this is to use a mixture distribution, i.e., $\mathsf{Negative}\text{-}\mathsf{Binomial}(\lambda, \phi)$, a.k.a. $\mathsf{Gamma}\text{-}\mathsf{Poisson}(\lambda, \phi)$, but we'll leave this for now and take an easier route for pedagogical reasons (if we'd be forced to pick one distribution, then we'd go for $\mathsf{Negative}\text{-}\mathsf{Binomial}(\lambda, \phi)$.
+
 
 > When all we know or are willing to say about a distribution of measures
 > (measures are continuous values on the real number line) is their mean and
