@@ -22,7 +22,7 @@ set.seed(100)
 
 ## The data and the problem
 
-For this example we'll make use of a dataset found in the PROMISE repository donated by Prof. Martin Shepperd in 2005, and originally from J.&nbsp;M.&nbsp;Desharnais' master thesis.^[http://promise.site.uottawa.ca/SERepository/datasets/desharnais.arff] We would like to predict `Effort` (our outcome) for implementing a software artifact, given programming language, team experience, and manager experience (our predictors).
+For this example we'll make use of a dataset found in the PROMISE repository donated by Prof.&nbsp;Martin Shepperd in 2005, and originally from J.&nbsp;M.&nbsp;Desharnais' master thesis.^[http://promise.site.uottawa.ca/SERepository/datasets/desharnais.arff] We would like to predict `Effort` (our outcome) for implementing a software artifact, given programming language, team experience, and manager experience (our predictors).
 
 ```{r}
  f <- read.arff("data/desharnais.arff")
@@ -135,7 +135,7 @@ prior <- extract.prior(m1) # sample only from priors
 mu <- link(m1, post = prior, data = list(TeamExp = c(-2,2)))
 ```
 
-Plot our priors on the outcome space.
+Plot our *priors* on the outcome space.
 
 ```{r m1pri, fig.align='center'}
 plot(NULL, xlim = c(-2,2), ylim = c(-2,2), 
@@ -186,7 +186,7 @@ for(i in 1:50) lines(c(-2,2), mu[i,], col=col.alpha("black",0.4))
 
 ### $\mathcal{M}_3$
 
-Finally, we add the predictor `Language` as a varying intercept (it's categorical). This means that each language will have its own intercept (deviating from $\bar{a}$). We've done something else here, i.e., added $\sigma_l$ to the linear part. This is called non-centered parameterization (NCP). We use NCP to change the multidimensional landscape the sampler needs to explore. The initial model we designed showed that the sampler struggled exploring the landscape, by smuggling out $\sigma_l$ to the linear part we have the same model, but we've changed the posterior the sampler needs to expore.
+Finally, we add the predictor `Language` as a varying intercept (it's categorical). This means that each language will have its own intercept (deviating from $\bar{a}$). We've done something else here, i.e., added $\sigma_l$ to the linear part. This is called non-centered parameterization (NCP).^[https://mc-stan.org/docs/2_26/stan-users-guide/reparameterization-section.html] We use NCP to change the multidimensional landscape the sampler needs to explore. The initial model we designed showed that the sampler struggled exploring the landscape, by smuggling out $\sigma_l$ to the linear part we have the same model, but we've changed the landscape the sampler needs to explore.
 
 ```{r m3, message=FALSE, warning=FALSE, results='hide'}
 m3 <- ulam(
@@ -225,20 +225,26 @@ Posterior predictive check.
 postcheck(m3, window=nrow(f))
 ```
 
-The vertical axis is the outcome, for each case in our dataset on the horizontal. The blue dots are the empirical data. The open circles are the posterior mean, with 90% interval, and the '+' symbol mark the 90% predicted interval. In some cases we see outliers (e.g. Case 77), which are outside the 90% predicted interval. This is not strange since we've used partial pooling. After all, if we want a perfect model for our empirical data, why not simply use the data as-is? Well, the answer to that question is: We will inadvertently overfit, i.e., learn too much from the empirical data, which will lead to a model that will break down when facing new data.
+The vertical axis is the outcome, for each case in our dataset on the horizontal. The blue dots are the empirical data. The open circles are the posterior mean, with 90% interval, and the '+' symbol mark the 90% predicted interval. In some cases we see outliers (e.g., Case 77), which are outside the 90% predicted interval. This is not strange since we've used partial pooling. After all, if we want a perfect model for our empirical data, why not simply use the data as-is? Well, the answer to that question is: We will inadvertently overfit, i.e., learn too much from the empirical data, which will lead to a model that will break down when facing new data.
 
 ## Model comparison
 
-We now have a set of models $\mathbf{M}$, which we can compare using PSIS-LOO. The comparison will be relative(!) and will not indicate if we've found an optimal, 'true', model. It will simply rank the models according to their relative out of sample prediction capabilities.
+We now have a set of models $\mathbf{M}$, which we can compare using PSIS-LOO. The comparison will be *relative* and will not indicate if we've found an optimal, 'true', model. It will simply rank the models according to their relative out of sample prediction capabilities.
 
 ```{r loo, warning=FALSE, message=FALSE, fig.align='center'}
 round(compare(m0, m1, m2, m3, func=LOO), 2)
 plot(compare(m0, m1, m2, m3, func=LOO), 2)
 ```
 
-What we see here, not surprisingly, is that $\mathcal{M}_3$ is considered the best model, even though we have more parameters in that model (models with more parameters are penalized). However, if we investigate the plot and table a bit closer we see that this is not a clear cut case. The difference between $\mathcal{M}_3$ and $\mathcal{M}_1$ (which is on second place) is $\text{dPSIS} \approx 1.3$ and the standard error is $\text{dSE} \approx 2.4$. Generally speaking, we would like to the difference to be at least $2$--$4$ dSE, i.e., dPSIS should preferably be more than, $2.4 \cdot 4 = 9.6$, while in this case it's only $1.3$.
+What we see here, not surprisingly, is that $\mathcal{M}_3$ is considered the best model, even though we have more parameters in that model (models with more parameters are penalized). However, if we investigate the plot and table a bit closer we see that this is not a clear cut case. The difference between $\mathcal{M}_3$ and $\mathcal{M}_1$ (which is on second place) is $\text{dPSIS} \approx 1.3$ and the standard error is $\text{dSE} \approx 2.4$. Generally speaking, we would like the difference to be at least $2$--$4$ dSE, i.e., dPSIS should preferably be more than, $2.4 \cdot 4 = 9.6$, while in this case it's only $1.3$.
 
-The above tells us at least two things. First, $\mathcal{M}_1$ has, relatively speaking, better out of sample prediction capabilities than $\mathcal{M}_2$, i.e., `TeamExp` has better predictive power than `ManagerExp`, in our models. Second, there is really no significant difference between the four models. A simple general intercept model (i.e., $\mathcal{M}_0$) is almost as good as a model with all predictors (i.e., $\mathcal{M}_3$). Which model should one pick? Well, if understandability is important, the simplest model. However, we are explicitly interested in the effect language has on predictions. Let's define our master model to be $\mathcal{M}_3$, i.e., $\mathcal{M} = \mathcal{M}_3$.
+The above tells us at least two things. First, $\mathcal{M}_1$ has, relatively speaking, better out of sample prediction capabilities than $\mathcal{M}_2$, i.e., `TeamExp` has better predictive power than `ManagerExp`, in our models. Second, there is really no significant difference between the four models. A simple general intercept model (i.e., $\mathcal{M}_0$) is almost as good as a model with all predictors (i.e., $\mathcal{M}_3$). Which model should one pick? Well, if,
+
+1. understandability is important, the simplest model should be picked, i.e., $\mathcal{M}_1$ (if there's no large difference between the 'best' and the simplest model),
+2. if we want to understand how *all* predictors affect the outcome, then $\mathcal{M}_3$ is the one to pick, and 
+3. if out of sample prediction is the only thing we care about then we pick the model that LOO ranks as no. 1, i.e., $\mathcal{M}_3$ again. 
+
+We are explicitly interested in the effect language has on predictions. Let's define our master model to be $\mathcal{M}_3$, i.e., $\mathcal{M} = \mathcal{M}_3$. We could simply create a new model with only a varying intercept according to language. Please do that and compare it with the other models in $\mathbf{M}$.
 
 ```{r}
 m <- m3
@@ -313,7 +319,7 @@ axis(1, at = c(1.0,2.0,3.0), labels = c("Language 1","Language 2", "Language 3")
 for ( i in 1:50 ) lines( 1:3 , p_raw_asim[i,] , col=grau(0.25) , lwd=2 )
 ```
 
-How does the language effect look like when we alter **team** experience (min and max values), while keeping manager experience to it's mean ($\mu = 2.6$ years)? Below we see that for Language $3$ the uncertainty does not cross $0$, indicating that the effect is clearly negative, both for low and high experienced teams.
+How does the language effect look like when we alter `team` experience (min and max values), while keeping manager experience to it's mean ($\mu = 2.6$ years)? Below we see that for Language $3$ the uncertainty does not cross $0$, indicating that the effect is clearly negative, both for low and high experienced teams.
 
 ```{r, echo = FALSE, fig.align='center', fig.height=8, fig.width=5}
 d_pred <- data.frame(
@@ -388,7 +394,7 @@ lines(1:2, p_mu_3)
 shade(p_ci_3 , 1:2)
 ```
 
-Next, how does the language effect look like when we alter **manager** experience (min and max values), while keeping team experience to it's mean ($\mu = 2.3$ years)? Once again, Language $3$ the effect is clearly negative, for both low and high experienced managers.
+Next, how does the language effect look like when we alter `manager` experience (min and max values), while keeping team experience to it's mean ($\mu = 2.3$ years)? Once again, for Language $3$ the effect is clearly negative, for both low and high experienced managers.
 
 ```{r, echo = FALSE, fig.align='center', fig.height=8, fig.width=5}
 d_pred <- data.frame(
@@ -460,6 +466,8 @@ lines(c(1,2), c(0, 0), type = "l", col = alpha("red", 0.7))
 lines(1:2, p_mu_3)
 shade(p_ci_3 , 1:2)
 ```
+
+Given the above, one conclusion could be that Language $3$ has a fairly strong negative effect on `Effort` compared to the other two languages. In short, Language $3$ requires less `Effort` both when considering `team` and `manager` experience.^[You have the possibility to look at the other predictors which are part of the dataset and include them also in new models to see what happens!]
 
 <!--
 ## Fake data simulation using a DAG
