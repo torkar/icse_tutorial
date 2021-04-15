@@ -2,7 +2,11 @@
 title: "Bayesian Data Analysis in Empirical Software Engineering"
 author: "R. Torkar, C. A. Furia, and R. Feldt"
 date: "Version: `r Sys.time()`"
-output: html_document
+output: 
+  html_document:
+    toc: true
+    toc_depth: 2
+    toc_float: true
 editor_options: 
   chunk_output_type: console
 ---
@@ -19,6 +23,8 @@ library(ggdag) # also a DAG library (all DAG stuff commented out for now)
 library(latex2exp)
 set.seed(100)
 ```
+
+# Step 1 (likelihood)
 
 ## The data and the problem
 
@@ -110,6 +116,8 @@ traceplot(m0)
 ```
 
 This is how healthy traceplots should look like, i.e., four chains mixing well making the plot look like a blurry band of colors. The gray background indicates the warmup phase and those samples are not included in our posterior probability distribution.
+
+# Steps 2--4
 
 ### $\mathcal{M}_1$
 
@@ -219,8 +227,6 @@ plot(NULL, xlim = c(-2,2), ylim = c(-2,2), main = "Prior predictive check",
 for(i in 1:50) lines(c(-2,2), mu[i,], col=col.alpha("black",0.4))
 ```
 
-Posterior predictive check.
-
 ```{r postcheck, fig.align='center'}
 postcheck(m3, window=nrow(f))
 ```
@@ -249,6 +255,8 @@ We are explicitly interested in the effect language has on predictions. Let's de
 ```{r}
 m <- m3
 ```
+
+# Step 5
 
 ## Estimates for $\mathcal{M}_3$
 
