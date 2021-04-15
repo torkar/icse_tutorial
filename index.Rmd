@@ -24,7 +24,7 @@ library(latex2exp)
 set.seed(100)
 ```
 
-# Step 1 (likelihood)
+# Step 1: Likelihood
 
 ## The data and the problem
 
@@ -117,7 +117,7 @@ traceplot(m0)
 
 This is how healthy traceplots should look like, i.e., four chains mixing well making the plot look like a blurry band of colors. The gray background indicates the warmup phase and those samples are not included in our posterior probability distribution.
 
-# Steps 2--4
+# Steps 2--4: Prior checks, sampling, posterior checks
 
 ### $\mathcal{M}_1$
 
@@ -233,7 +233,7 @@ postcheck(m3, window=nrow(f))
 
 The vertical axis is the outcome, for each case in our dataset on the horizontal. The blue dots are the empirical data. The open circles are the posterior mean, with 90% interval, and the '+' symbol mark the 90% predicted interval. In some cases we see outliers (e.g., Case 77), which are outside the 90% predicted interval. This is not strange since we've used partial pooling. After all, if we want a perfect model for our empirical data, why not simply use the data as-is? Well, the answer to that question is: We will inadvertently overfit, i.e., learn too much from the empirical data, which will lead to a model that will break down when facing new data.
 
-## Model comparison
+# (Step 5: Model comparisons)
 
 We now have a set of models $\mathbf{M}$, which we can compare using PSIS-LOO. The comparison will be *relative* and will not indicate if we've found an optimal, 'true', model. It will simply rank the models according to their relative out of sample prediction capabilities.
 
@@ -256,7 +256,7 @@ We are explicitly interested in the effect language has on predictions. Let's de
 m <- m3
 ```
 
-# Step 5
+# Step 6: Inference
 
 ## Estimates for $\mathcal{M}_3$
 
