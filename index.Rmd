@@ -42,7 +42,7 @@ str(f)
 
 So, from the top, we have `Effort`, our outcome, and then `Language`, our predictor. `Effort` is in hours spent. `Language` we've converted to an integer $1,2,3$, indicating three different languages. In total we have `r nrow(f)` rows (or observations, if you will).
 
-## Step 1: Likelihood
+## Step 1: Likelihoods
 
 What ontological and epistemological assumptions can we make concerning the underlying process that generated the outcome `Effort`?
 
@@ -52,7 +52,7 @@ From an epistemological perspective, and from an information theoretical point o
 
 Let us now design a set of models $\mathbf{M}=\{\mathcal{M}_0,\mathcal{M}_1\}$ and see how well they compare concerning out of sample predictions. For the first model we'll use prior and posterior predictive checks (which we won't report for the second model).
 
-## Step 2: Prior predictive checks
+## Step 2: Priors
 
 We want a simple intercept only model (to estimate the grand mean $\alpha$). A common prior is $\mathsf{Normal}(0,10)$, but since we use a log link when using a $\mathsf{Poisson}$ likelihood, this can have very strange effects.
 
@@ -75,7 +75,7 @@ which seems absurd. Such a project would need the earth's population ($8 \cdot 1
 
 Let's go for a $\mathsf{Normal}(0,4)$ as a prior on the $\alpha$ parameter that we want to estimate. 
 
-## Step 3: Sample the model
+## Step 3: Calculating the posterior
 
 Sample the model with empirical data. We sample using four independent chains, which then are used to indicate if we have reached a stationary posterior distribution.
 
@@ -121,7 +121,7 @@ m1 <- ulam(
 
 We've conducted prior predictive checks and checked diagnostics for the above model. Now might be interesting to do a posterior predictive check, i.e., how well our model fits the data.
 
-## Step 4: Posterior predictive checks
+## Step 4: Sanity check of the posterior
 
 ```{r, message=FALSE, warning=FALSE, results='hide'}
 postcheck(m1, window = 81)
@@ -176,7 +176,7 @@ loo_est[2,3] + c(-1,1) * loo_est[2,4] * 1.96
 
 which is clearly not crossing zero. In short, modeling the variance separately using the $\mathsf{Negative}$-$\mathsf{Binomial}$ paid off.
 
-## Step 6: Inference
+## Step 6: Compute stuff
 
 If we plot our estimates we might visually appreciate the differences between the estimates better.
 
