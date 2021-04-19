@@ -18,9 +18,6 @@ knitr::opts_chunk$set(cache = TRUE)
 library(rethinking) # the sw for model specification (it then uses cmdstan)
 library(foreign) # need to load funky data format
 library(here) # make sure working dir is the same all the time
-library(dagitty) # drawing DAGs
-library(ggdag) # also a DAG library (all DAG stuff commented out for now)
-library(latex2exp)
 set.seed(100)
 ```
 
@@ -67,7 +64,6 @@ which seems OK. Let's have a look at a default prior,
 
 ```{r}
 # sample randomly from a log-normal()
-set.seed(1)
 max(rlnorm(1e4, 0, 10))
 ```
 
@@ -119,7 +115,7 @@ m1 <- ulam(
 )
 ```
 
-We've conducted prior predictive checks and checked diagnostics for the above model. Now might be interesting to do a posterior predictive check, i.e., how well our model fits the data.
+We've conducted prior predictive checks and checked diagnostics for the above model. Now it might be interesting to do a posterior predictive check, i.e., how well our model fits the data.
 
 ## Step 4: Sanity check of the posterior
 
@@ -127,9 +123,9 @@ We've conducted prior predictive checks and checked diagnostics for the above mo
 postcheck(m1, window = 81)
 ```
 
-The vertical axis is the outcome for each case in our dataset on the horizontal. The blue dots are the empirical data. The circles are the posterior mean. We see that the model has terribly fit in many cases (i.e., many of the blue dots are far away from the circles). Hmmm$\ldots$ our priors are sane but given this large variation a $\mathsf{Poisson}$ might not be the right likelihood after all$\ldots$
+The vertical axis is the outcome for each case in our dataset on the horizontal. The blue dots are the empirical data. The circles are the posterior mean. We see that the model has terribly fit in many cases (i.e., many of the blue dots are far away from the circles). Our priors are sane,we do know that, but given this large variation the $\mathsf{Poisson}$ might not be the right likelihood after all$\ldots$
 
-Remember, a $\mathsf{Poisson}$ assumes that the mean and the variance is approximately equal. Let's check if this is true,
+Remember, the $\mathsf{Poisson}$ assumes that the mean and the variance is approximately equal. Let's check if this is true,
 
 ```{r}
 var(f$Effort)
@@ -185,4 +181,31 @@ plot(precis(m2, depth = 2, pars = "a_lang", prob = 0.95))
 ```
 
 Circles indicate the estimated posterior mean, and the bars are 95% posterior intervals. 
-We see that one language (Language 3) is clearly lower than the other languages. In short, using Language 3 means that a project uses less effort. Since Language 3 clearly does not touch any of the other languages bars one could claim that it's a significant difference.
+We see that one language (Language 3) is clearly lower than the other languages. In short, using Language 3 means that a project uses less effort. Since Language 3 clearly does not touch any of the other languages bars one could claim that it's a significant difference. But then there are many other things that could prove this to be false...
+
+# Appendix
+
+## CmdStan
+
+For the sampling we refrain from using [rstan](https://mc-stan.org/users/interfaces/rstan) and instead use [cmdstan](https://mc-stan.org/users/interfaces/cmdstan) through the <font style="font-family: serif">R</font> package [rethinking](https://github.com/rmcelreath/rethinking). Generally speaking, the community now prefer users to use `cmdstan` since it updates more frequently.
+
+Install `cmdstanr` and `cmdstan` by,
+
+```{r, eval=FALSE}
+CORES = 4 # set to the number of available CPU cores
+remotes::install_github("stan-dev/cmdstanr")
+cmdstanr::install_cmdstan(cores = CORES)
+# you can now run rethinking with cmdstan instead of rstan
+```
+
+For this execution we've used,
+
+```{r}
+cmdstanr::cmdstan_version()
+```
+
+## Environment
+
+```{r}
+print(sessionInfo(), locale=FALSE)
+
