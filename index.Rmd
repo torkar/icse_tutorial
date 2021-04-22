@@ -47,7 +47,7 @@ From an ontological perspective, the outcome consists of positive integers, i.e.
 
 From an epistemological perspective, and from an information theoretical point of view, we want to use a likelihood that allows the data to happen in the most ways, i.e., it doesn't constrain the story data wants to tell us. Given the above, the maximum entropy distribution is the $\mathsf{Poisson}(\lambda)$.
 
-Let us now design a set of models $\mathbf{M}=\{\mathcal{M}_0,\mathcal{M}_1\}$ and see how well they compare concerning out of sample predictions. For the first model we'll use prior and posterior predictive checks (which we won't report for the second model).
+Let us now design a set of models $\mathbf{M}=\{\mathcal{M}_0,\ldots,\mathcal{M}_n\}$ and see how well they compare concerning out of sample predictions. For the first model we'll use prior predictive checks (which we won't report for the second model), while for the second model we'll do posterior predictive checks.
 
 ## Step 2: Priors
 
@@ -57,17 +57,18 @@ Without looking at the empirical data we can assume that we perhaps have a mean 
 
 ```{r}
 # sample randomly from a log-normal()
-max(rlnorm(1e4, 0, 4))
+max(rlnorm(1e5, 0, 4))
 ```
 
 which seems OK. Let's have a look at a default prior,
 
 ```{r}
 # sample randomly from a log-normal()
-max(rlnorm(1e4, 0, 10))
+max(rlnorm(1e5, 0, 10))
 ```
 
-which seems absurd. Such a project would need the earth's population ($8 \cdot 10 ^9$) to work on the project for almost 3,000 years, if we assume they spent 1,500 hours/year on the project: $3.5 \cdot 10^{16} / 8 \cdot 10^9 / 1.5 \cdot 10^3 =$ `r round(3.5e16 / 8e9 / 1.5e3, 0)`.
+which seems absurd. Hard to see a project with these many hours\ldots
+<!-- Such a project would need the earth's population ($8 \cdot 10 ^9$) to work on the project for almost 16,667 years, if we assume they spent 1,500 hours/year on the project: $2 \cdot 10^{17} / 8 \cdot 10^9 / 1.5 \cdot 10^3 =$ `r round(2e17 / 8e9 / 1.5e3,0)`. -->
 
 Let's go for a $\mathsf{Normal}(0,4)$ as a prior on the $\alpha$ parameter that we want to estimate. 
 
@@ -80,7 +81,7 @@ m0 <- ulam(
   alist(
     Effort ~ poisson(lambda),
     log(lambda) <- alpha, # log link
-    alpha ~ normal(0, 4)
+    alpha ~ normal(0, 3)
   ), data = f, cores = 4, chains = 4, cmdstan = TRUE, log_lik = TRUE, iter = 5e3
 )
 ```
