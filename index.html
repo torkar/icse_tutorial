@@ -242,7 +242,7 @@ div.tocify {
 
 <h1 class="title toc-ignore">Bayesian Data Analysis in Empirical Software Engineering</h1>
 <h4 class="author">R. Torkar, C. A. Furia, and R. Feldt</h4>
-<h4 class="date">Version: 2021-05-24 14:06:00</h4>
+<h4 class="date">Version: 2021-05-27 14:33:45</h4>
 
 </div>
 
@@ -250,6 +250,7 @@ div.tocify {
 <div id="the-data-and-the-problem" class="section level1">
 <h1>The data and the problem</h1>
 <p>For this example we’ll make use of a dataset found in the PROMISE repository donated by Prof. Martin Shepperd in 2005, and originally from J. M. Desharnais’ master thesis.<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a> We would like to predict <code>Effort</code> (our outcome) for implementing a software artifact, given programming language used (our predictor).</p>
+<p>Data, script, etc. are found at the GitHub repository.<a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a></p>
 <pre class="r"><code>f &lt;- read.arff(&quot;data/desharnais.arff&quot;)
  
 # remove columns we don&#39;t need
@@ -266,7 +267,7 @@ str(f)</code></pre>
 <div id="step-1-likelihoods" class="section level2">
 <h2>Step 1: Likelihoods</h2>
 <p>What ontological and epistemological assumptions can we make concerning the underlying process that generated the outcome <code>Effort</code>?</p>
-<p>From an ontological perspective, the outcome consists of positive integers, i.e., <span class="math inline">\(\mathbb{N}^+\)</span>, so a count going from <span class="math inline">\(0 \rightarrow \infty\)</span>. For this type of data the <span class="math inline">\(\mathsf{Poisson}(\lambda)\)</span> distribution is commonly used, where <span class="math inline">\(\lambda\)</span> is the parameter we want to estimate.<a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a></p>
+<p>From an ontological perspective, the outcome consists of positive integers, i.e., <span class="math inline">\(\mathbb{N}^+\)</span>, so a count going from <span class="math inline">\(0 \rightarrow \infty\)</span>. For this type of data the <span class="math inline">\(\mathsf{Poisson}(\lambda)\)</span> distribution is commonly used, where <span class="math inline">\(\lambda\)</span> is the parameter we want to estimate.<a href="#fn3" class="footnote-ref" id="fnref3"><sup>3</sup></a></p>
 <p>From an epistemological perspective, and from an information theoretical point of view, we want to use a likelihood that allows the data to happen in the most ways, i.e., it doesn’t constrain the story data wants to tell us. Given the above, the maximum entropy distribution is the <span class="math inline">\(\mathsf{Poisson}(\lambda)\)</span>.</p>
 <p>Let us now design a set of models <span class="math inline">\(\mathbf{M}=\{\mathcal{M}_0,\ldots,\mathcal{M}_n\}\)</span> and see how well they compare concerning out of sample predictions. For the first model we’ll use prior predictive checks (which we won’t report for the second model), while for the second model we’ll do posterior predictive checks.</p>
 </div>
@@ -417,7 +418,8 @@ cmdstanr::install_cmdstan(cores = CORES)
 <hr />
 <ol>
 <li id="fn1"><p><a href="http://promise.site.uottawa.ca/SERepository/datasets/desharnais.arff" class="uri">http://promise.site.uottawa.ca/SERepository/datasets/desharnais.arff</a><a href="#fnref1" class="footnote-back">↩︎</a></p></li>
-<li id="fn2"><p>For the <span class="math inline">\(\mathsf{Poisson}(\lambda)\)</span>, the <span class="math inline">\(\lambda\)</span> estimates the mean <em>and</em> the variance of the distribution.<a href="#fnref2" class="footnote-back">↩︎</a></p></li>
+<li id="fn2"><p><a href="https://github.com/torkar/icse_tutorial" class="uri">https://github.com/torkar/icse_tutorial</a><a href="#fnref2" class="footnote-back">↩︎</a></p></li>
+<li id="fn3"><p>For the <span class="math inline">\(\mathsf{Poisson}(\lambda)\)</span>, the <span class="math inline">\(\lambda\)</span> estimates the mean <em>and</em> the variance of the distribution.<a href="#fnref3" class="footnote-back">↩︎</a></p></li>
 </ol>
 </div>
 

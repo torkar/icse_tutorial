@@ -20,20 +20,27 @@ f$Language <- as.numeric(f$Language)
 str(f)
 
 # Step 1 Likelihood
+# ontological and epistemological assumptions?
 
 
 # Step 2 Prior predictive check
+# Show for grand mean
 
 
 # Step 3 Sampling and diagnostics
+# grand mean model (m0) and varying intercept model (m1)
 
 
 # Step 4 Posterior predictive checks
-
+# do a simple postcheck() on m1
 
 # Step 5 Model comparison
+# use LOO
 
 
 # Step 6 Compute stuff
+# a) plot posterior values with uncertainty using precis()
+# b) extract samples using extract.samples()
+# c) compute distribution of effect sizes using... arithmetic...
 
 

@@ -25,6 +25,8 @@ set.seed(100)
 
 For this example we'll make use of a dataset found in the PROMISE repository donated by Prof.&nbsp;Martin Shepperd in 2005, and originally from J.&nbsp;M.&nbsp;Desharnais' master thesis.^[http://promise.site.uottawa.ca/SERepository/datasets/desharnais.arff] We would like to predict `Effort` (our outcome) for implementing a software artifact, given programming language used (our predictor).
 
+Data, script, etc. are found at the GitHub repository.^[https://github.com/torkar/icse_tutorial]
+
 ```{r}
 f <- read.arff("data/desharnais.arff")
  
