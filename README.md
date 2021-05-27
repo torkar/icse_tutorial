@@ -12,3 +12,5 @@ Check out the published example in `index.Rmd`.
 Check out examples of model specifications in `examples/`.
 
 `foo.R` contains the exact code as used in the tutorial.
+
+Pre-recorded videos can be found here: https://t.co/CkbILqLNqT
