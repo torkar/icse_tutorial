@@ -126,7 +126,7 @@ We've conducted prior predictive checks and checked diagnostics for the above mo
 postcheck(m1, window = 81)
 ```
 
-The vertical axis is the outcome for each case in our dataset on the horizontal. The blue dots are the empirical data. The circles are the posterior mean. We see that the model has terribly fit in many cases (i.e., many of the blue dots are far away from the circles). Our priors are sane,we do know that, but given this large variation the $\mathsf{Poisson}$ might not be the right likelihood after all$\ldots$
+The vertical axis is the outcome for each case in our dataset on the horizontal. The blue dots are the empirical data. The circles are the posterior mean. We see that the model has terribly fit in many cases (i.e., many of the blue dots are far away from the circles). Our priors are sane, we do know that, but given this large variation the $\mathsf{Poisson}$ might not be the right likelihood after all$\ldots$
 
 Remember, the $\mathsf{Poisson}$ assumes that the mean and the variance is approximately equal. Let's check if this is true,
 
@@ -155,7 +155,7 @@ Let's do a posterior check again,
 postcheck(m2, window=81)
 ```
 
-The blue dots are the empirical data. The circles are the posterior mean, with 90% interval, and the '+' symbol mark the 90% predicted interval. In some cases we see clear outliers (e.g., Cases 43 and 81), which are outside the 90% predicted interval. This is not strange, after all, if we want a perfect model for our empirical data, why not simply use the data as-is? Well, the answer to that question is: We will inadvertently overfit, i.e., learn too much from the empirical data, which will lead to a model that will break down when facing new data.
+The blue dots are the empirical data. The circles are the posterior mean, with 90% interval, and the '+' symbol mark the 90% predicted interval. In some cases we see clear outliers (e.g., Cases 44 and 81), which are outside the 90% predicted interval. This is not strange, after all, if we want a perfect model for our empirical data, why not simply use the data as-is? Well, the answer to that question is: We will inadvertently overfit, i.e., learn too much from the empirical data, which will lead to a model that will break down when facing new data.
 
 ## (Step 5: Model comparisons)
 
@@ -184,6 +184,7 @@ plot(precis(m2, depth = 2, pars = "a_lang", prob = 0.95))
 ```
 
 Circles indicate the estimated posterior mean, and the bars are 95% posterior intervals. 
+
 We see that one language (Language 3) is clearly lower than the other languages. In short, using Language 3 means that a project uses less effort. Since Language 3 clearly does not "touch" any of the other languages, one could claim that it's a significant difference. But then there are many other things that could prove this to be false...
 
 # Appendix
