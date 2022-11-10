@@ -29,7 +29,7 @@ Data, script, etc. are found at the GitHub repository.^[https://github.com/torka
 
 ```{r}
 f <- read.arff("data/desharnais.arff")
- 
+
 # remove columns we don't need
 f <- f[-c(1:5,7:11)]
 
@@ -140,8 +140,8 @@ m2 <- ulam(
     alist(
         Effort ~ dgampois(lambda, phi), # phi to model variance
         log(lambda) <- a_lang[Language],
-        a_lang[Language] ~ normal(0, 3),
-        phi ~ exponential(1) # prior on the variance component phi
+        a_lang[Language] ~ dnorm(0, 3),
+        phi ~ dexp(1) # prior on the variance component phi
     ), data = f, cores = 4, chains = 4, cmdstan = TRUE, log_lik = TRUE,
     control = list(adapt_delta = 0.95)
 )
