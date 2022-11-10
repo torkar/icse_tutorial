@@ -17,7 +17,7 @@ knitr::opts_chunk$set(cache = TRUE)
 
 library(rethinking) # the sw for model specification (it then uses cmdstan)
 library(foreign) # need to load funky data format
-library(here) # make sure working dir is the same all the time
+# library(here) # make sure working dir is the same all the time
 set.seed(100)
 ```
 
@@ -58,21 +58,20 @@ We want a simple intercept only model (to estimate the grand mean $\alpha$). A c
 Without looking at the empirical data we can assume that we perhaps have a mean `Effort` in the thousands (not much of a project otherwise). The maximum `Effort` could very well end up in the millions (50--60 people working for ten years in a project), but let's assume it's not in the billions (70,000 people working for ten years in a project).
 
 ```{r}
-# sample randomly from a log-normal()
+# sample randomly from a log-normal() and check max value
 max(rlnorm(1e5, 0, 4))
 ```
 
-which seems OK. Let's have a look at a default prior,
+which seems OK. Let's have a look at a default prior, which we see commonly used,
 
 ```{r}
 # sample randomly from a log-normal()
 max(rlnorm(1e5, 0, 10))
 ```
 
-which seems absurd. Hard to see a project with these many hours\ldots
-<!-- Such a project would need the earth's population ($8 \cdot 10 ^9$) to work on the project for almost 16,667 years, if we assume they spent 1,500 hours/year on the project: $2 \cdot 10^{17} / 8 \cdot 10^9 / 1.5 \cdot 10^3 =$ `r round(2e17 / 8e9 / 1.5e3,0)`. -->
+which seems absurd. Hard to see a project with these many hours\ldots Such a project would need the earth's population ($8 \cdot 10 ^9$) to work on the project for almost 17,000 years, if we assume engineers spend 1,500 hours/year on the project: $2 \cdot 10^{17} / 8 \cdot 10^9 / 1.5 \cdot 10^3 =$ `r round(2e17 / 8e9 / 1.5e3,0)`.
 
-Let's go for a $\mathsf{Normal}(0,4)$ as a prior on the $\alpha$ parameter that we want to estimate. 
+Let's use a $\mathsf{Normal}(0,4)$ as a prior on the $\alpha$ parameter that we want to estimate. 
 
 ## Step 3: Calculating the posterior
 
@@ -98,11 +97,12 @@ The diagnostics looks OK. $\widehat{R} < 1.01$ and the effective sample size (`n
 
 ```{r, echo=FALSE, warning=FALSE, message=FALSE, results='hide', fig.align='center'}
 trankplot(m0)
+traceplot(m0)
 ```
 
-This is how healthy trankplots should look like, i.e., four chains mixing well after the initial phase. 
+This is how healthy trank- or traceplots should look like, i.e., four chains mixing well after the initial phase. 
 
-The estimated $\alpha$ was $8.5$. But remember, we used a log link so we need to get it back on the outcome scale, i.e., $\mathrm{exp}(8.5)=$ `r round(exp(precis(m0)[,1]), 0)`. That's the overall mean of `Effort`, no matter language used. 
+The estimated $\alpha$ was $\sim 8.5$. But remember, we used a log link so we need to get it back on the outcome scale, i.e., $\mathrm{exp}(8.5)=$ `r round(exp(precis(m0)[,1]), 0)`. That's the overall mean of `Effort`, no matter language used. 
 
 Conducting posterior predictive checks when we only estimate a grand mean is really not sane so we'll leave this for now. Let's focus on adding adding our predictor `Language`.
 
@@ -126,16 +126,14 @@ We've conducted prior predictive checks and checked diagnostics for the above mo
 postcheck(m1, window = 81)
 ```
 
-The vertical axis is the outcome for each case in our dataset on the horizontal. The blue dots are the empirical data. The circles are the posterior mean. We see that the model has terribly fit in many cases (i.e., many of the blue dots are far away from the circles). Our priors are sane, we do know that, but given this large variation the $\mathsf{Poisson}$ might not be the right likelihood after all$\ldots$
-
-Remember, the $\mathsf{Poisson}$ assumes that the mean and the variance is approximately equal. Let's check if this is true,
+The vertical axis is the outcome for each case in our dataset on the horizontal. The blue dots are the empirical data. The circles are the posterior mean. We see that the model has terribly fit in many cases (i.e., many of the blue dots are far away from the circles). Our priors are sane, we do know that, but given this large variation the $\mathsf{Poisson}$ might not be the right likelihood after all$\ldots$ Remember, the $\mathsf{Poisson}$ assumes that the mean and the variance is approximately equal. Let's check if this is true,
 
 ```{r}
 var(f$Effort)
 mean(f$Effort)
 ```
 
-This clearly indicates that the $\mathsf{Poisson}$ should not be used. We need to fall back on a mixture distribution (a mixture of $\mathsf{Gamma}$ and $\mathsf{Poisson}$) often called $\mathsf{Negative}$-$\mathsf{Binomial}$. Here we will be able to model the variance separately.
+Far away. This indicates that the $\mathsf{Poisson}$ should not be used. We need to fall back on a mixture distribution (a mixture of $\mathsf{Gamma}$ and $\mathsf{Poisson}$) often called $\mathsf{Negative}$-$\mathsf{Binomial}$. Here we will be able to model the variance separately.
 
 ```{r, m2, message=FALSE, warning=FALSE, results='hide'}
 m2 <- ulam(
@@ -145,14 +143,14 @@ m2 <- ulam(
         a_lang[Language] ~ normal(0, 3),
         phi ~ exponential(1) # prior on the variance component phi
     ), data = f, cores = 4, chains = 4, cmdstan = TRUE, log_lik = TRUE,
-    control = list(adapt_delta=0.95)
+    control = list(adapt_delta = 0.95)
 )
 ```
 
 Let's do a posterior check again,
 
 ```{r}
-postcheck(m2, window=81)
+postcheck(m2, window = 81)
 ```
 
 The blue dots are the empirical data. The circles are the posterior mean, with 90% interval, and the '+' symbol mark the 90% predicted interval. In some cases we see clear outliers (e.g., Cases 44 and 81), which are outside the 90% predicted interval. This is not strange, after all, if we want a perfect model for our empirical data, why not simply use the data as-is? Well, the answer to that question is: We will inadvertently overfit, i.e., learn too much from the empirical data, which will lead to a model that will break down when facing new data.
@@ -173,7 +171,7 @@ We can actually calculate a confidence interval for it if we want to. Using a $z
 loo_est[2,3] + c(-1,1) * loo_est[2,4] * 1.96
 ```
 
-which is clearly not crossing zero. In short, modeling the variance separately using the $\mathsf{Negative}$-$\mathsf{Binomial}$ paid off.
+which is clearly not crossing zero. In short, modeling the variance separately using the $\mathsf{Negative}$-$\mathsf{Binomial}$ paid off big time.
 
 ## Step 6: Compute stuff
 
@@ -185,7 +183,7 @@ plot(precis(m2, depth = 2, pars = "a_lang", prob = 0.95))
 
 Circles indicate the estimated posterior mean, and the bars are 95% posterior intervals. 
 
-We see that one language (Language 3) is clearly lower than the other languages. In short, using Language 3 means that a project uses less effort. Since Language 3 clearly does not "touch" any of the other languages, one could claim that it's a significant difference. But then there are many other things that could prove this to be false...
+We see that one language (Language 3) is clearly lower than the other languages. In short, using Language 3 means that a project uses less effort. Since Language 3 clearly does not 'touch' any of the other languages, one could claim that it's a 'significant' difference. But then there are many other things that could prove this to be false$\ldots$
 
 # Appendix
 
@@ -196,7 +194,7 @@ For the sampling we refrain from using [rstan](https://mc-stan.org/users/interfa
 Install `cmdstanr` and `cmdstan` by,
 
 ```{r, eval=FALSE}
-CORES = 4 # set to the number of available CPU cores
+CORES = 8 # set to the number of available CPU cores
 remotes::install_github("stan-dev/cmdstanr")
 cmdstanr::install_cmdstan(cores = CORES)
 # you can now run rethinking with cmdstan instead of rstan
@@ -211,5 +209,5 @@ cmdstanr::cmdstan_version()
 ## Environment
 
 ```{r}
-print(sessionInfo(), locale=FALSE)
+print(sessionInfo(), locale = FALSE)
 ```
