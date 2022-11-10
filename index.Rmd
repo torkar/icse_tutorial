@@ -31,10 +31,7 @@ Data, script, etc. are found at the GitHub repository.^[https://github.com/torka
 f <- read.arff("data/desharnais.arff")
 
 # remove columns we don't need
-f <- f[-c(1:5,7:11)]
-
-# convert Language (factor) to numeric
-f$Language <- as.numeric(f$Language)
+f <- f[-c(1:5, 7:11)]
 
 str(f)
 ```
