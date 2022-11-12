@@ -1,71 +1,61 @@
-# the code as-is from the TB at ICSE 2021
-
-# Clone from GitHub:
-# https://github.com/torkar/icse_tutorial
-
-library(rethinking) # model specification
-library(foreign) # for loading data files
-
-# set working directory
-setwd("~/Development/icse_tutorial/")
+library(rethinking) # math-like model specification language
+library(foreign) # for loading funky data files install.packages("foreign")
 
 # load data file from PROMISE (Sayyad & Menzies), contributed by Shepperd
-f <- read.arff("data/desharnais.arff")
+d <- as.data.frame(read.arff("data/desharnais.arff"))
 
 # remove columns we don't need
-f <- f[-c(1:5,7:11)]
+d <- d[-c(1:5, 7:11)]
 
 # convert Language (factor) to numeric because we hate factors
-f$Language <- as.numeric(f$Language)
+d$Language <- as.numeric(d$Language)
+# make sure Effort is integer
+d$Effort <- as.integer(d$Effort)
 
 # check out the data frame
-str(f)
+str(d)
 
 ##### Step 1 Likelihood
 # ontological and epistemological assumptions?
-var(f$Effort)
-mean(f$Effort)
+var(d$Effort)
+mean(d$Effort)
 
-##### Step 2 Prior predictive check
-# Show for grand mean
+##### Step 2 Simplified prior analysis
+# a suitable prior for alpha, i.e., grand mean
+# note we're using LogNormal since we'll use a link function
+max(rlnorm(1e6, 0, 2))
+curve(dlnorm(x, meanlog = 0, sdlog = 2), from = 0, to = 1e4)
 
-max(rlnorm(1e5, 0, 4))
-
-##### Step 3 Sampling and diagnostics
-# grand mean model (m0) and varying intercept model (m1)
-
-m0 <- ulam(
+m_cp <- ulam(
   alist(
     Effort ~ dgampois(lambda, phi),
     log(lambda) <- alpha,
-    alpha ~ normal(0,4),
+    alpha ~ normal(0, 2),
     phi ~ exponential(1)
-  ), data =f , cores = 4, chains = 4, cmdstan = TRUE, log_lik=TRUE, iter = 5e3
+  ), data = d, cores = 4, chains = 4, cmdstan = TRUE, log_lik = TRUE, iter = 5e3
 )
 
-m1 <- ulam(
+m_np <- ulam(
   alist(
     Effort ~ dgampois(lambda, phi),
-    log(lambda) <- a_lang[Language],
-    a_lang[Language] ~ normal(0,3),
+    log(lambda) <- a + a_lang[Language],
+    a ~ normal(0, 2),
+    a_lang[Language] ~ normal(0, 1),
     phi ~ exponential(1)
-  ), data =f , cores = 4, chains = 4, cmdstan = TRUE, log_lik=TRUE, iter = 5e3
+  ), data = d, cores = 4, chains = 4, cmdstan = TRUE, log_lik = TRUE, iter = 5e3
 )
 
+m_pp <- ulam(
+  alist(
+    Effort ~ dgampois(lambda, phi),
+    log(lambda) <- a + a_lang[Language],
+    a ~ normal(0, 3),
+    a_lang[Language] ~ normal(mu_l, sigma_l),
+    mu_l ~ normal(0, 1),
+    sigma_l ~ exponential(1),
+    phi ~ exponential(1)
+  ), data = d, cores = 4, chains = 4, cmdstan = TRUE, log_lik = TRUE,
+      iter = 5e3, control = list(adapt_delta = 0.9)
+)
 
-
-##### Step 4 Posterior predictive checks
-# do a simple postcheck() on m1
-
-postcheck(m0)
-
-##### Step 5 Model comparison
-# use LOO
-
-compare(m0,m1, func=LOO)
-
-##### Step 6 Compute stuff
-# a) plot posterior values with uncertainty using precis()
-# b) extract samples using extract.samples()
-# c) compute distribution of effect sizes using... arithmetic...
-
+(ll <- compare(m_cp, m_np, m_pp))
