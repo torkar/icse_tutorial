@@ -1,6 +1,5 @@
-# This R file differs from the Rmd and html files.
-# This is a improvement over the Rmd etc. used in a research course
-# autumn 2022.
+# This R file differs from the Rmd and html files. This is a improvement over
+# the Rmd/html. Used in a research seminar (español) autumn 2022.
 
 library(rethinking) # math-like model specification language
 library(foreign) # for loading funky data files install.packages("foreign")
@@ -8,13 +7,17 @@ library(foreign) # for loading funky data files install.packages("foreign")
 # load data file from PROMISE (Sayyad & Menzies), contributed by Shepperd
 d <- read.arff("data/desharnais.arff")
 
-# remove columns we don't need
+# lots of juicy stuff here
+str(d)
+# see https://www.kaggle.com/datasets/toniesteves/desharnais-dataset for a data
+# dictionary.
+# Remove columns we don't need
 d <- d[-c(1:5, 7:11)]
 
 # convert Language (factor) to numeric because we hate factors
 d$Language <- as.numeric(d$Language)
 
-# check out the data frame
+# check out the new data frame
 str(d)
 
 ##### Step 1 Likelihood?
@@ -26,8 +29,8 @@ mean(d$Effort)
 
 ###############################################################################
 # Step 2 Simplified prior analysis
-# a suitable prior for alpha, i.e., grand mean
-# note we're using LogNormal since we'll use a link function
+# What is a suitable prior for alpha, i.e., grand mean?
+# note we're using LogNormal since we use a log link function
 ###############################################################################
 # num. of max hours in a project / 1500 ~ num. FTEs/yr
 max(rlnorm(1e6, 0, 2)) / 1500
@@ -79,7 +82,7 @@ m_pp <- ulam(
 # Step 4 Model comparison
 #
 ##############################################################################
-(ll <- compare(m_cp, m_np, m_pp))
+(ll <- compare(m_cp, m_np, m_pp)) # Use WAIC, even though LOO is SoA
 plot(compare(m_cp, m_np, m_pp))
 # In short, no model is really significantly better
 
@@ -105,25 +108,17 @@ post_pp <- extract.samples(m_pp)
 
 exp(mean(post_pp$a) + mean(post_pp$a_lang[, 3])) -
     exp(mean(post_np$a) + mean(post_np$a_lang[, 3]))
-# so they only differ in ~151 hours on relative effect scale
+# so they only differ in ~150 hours on relative effect scale
 
 # But how much do they differ on absolute effect scale (i.e., prediction)
 sim_np <- sim(m_np)
 sim_pp <- sim(m_pp)
 mean(sim_np - sim_pp)
-# So m_np predicts >5h higher on the outcome scale xD
-
-# Which Language is the best? We see that no language is 'significant',
-# but if we have a gun pointing at us and we want to pick one anyways?
-# What we need to remember is that lower values are better, i.e.,
-# less number of hours spent in the project.
-
-# Let's use m_np to since it "won" the relative comparison above.
+# So m_np predicts >5-30h higher on the outcome scale xD
 
 # Compare all combinations of languages, but let's first look at
-# diff between language 1 and 2
-
-# create empty plot window
+# diff between language 1 and 2.
+# Create empty plot window
 plot(NULL, xlim = c(-2, 4), ylim = c(0, 1), ylab = "", xlab = "")
 
 # Add the two densities and text
@@ -137,7 +132,7 @@ abline(v = mean(post_np$a_lang[, 2]), , col = "red")
 # So visually we see that Language 2 is "better", since it seems the mean
 # is lower (the vertical lines). Can we quantify that probabilistically?
 # Let's use the power of arithmetics :) Take the 1e5 samples and simply
-# take L1 - L2
+# use subtraction, i.e., L1 - L2
 
 comp_12 <- post_np$a_lang[, 1] - post_np$a_lang[, 2]
 dens(comp_12) # plot the difference first
@@ -151,15 +146,16 @@ table(sign(comp_12))
 #  -1    1
 #2547 7453
 
-# 25.47% of the time, Language *1* gets lower values than Language *2*.
-# 74.53% of the time, Language *2* gets lower values than Language *1*.
+# ~25% of the time, Language *1* gets lower values than Language *2*.
+# ~75% of the time, Language *2* gets lower values than Language *1*.
 # If forced to choose, we should pick Language 2, no matter if it's significant
-# or not
+# or not!
 
 # As an exercise for you, you can now compare L1 w/ L3 and L2 w/ L3 also!
 # You will see that it's a clear cut case that L3 should be picked, even though
-# it's not 'significant'!
+# it's not 'significant'! However, these type of probabilistic statements can
+# be made once we have a posterior probability distribution.
 #
-# In the data set we also have many more independent variables, which we could
-# use. We remove them at the beginning but we don't have to...
+# In the data set we also have many more independent variables. We remove them
+# at the beginning, but we don't have to...
 # https://www.kaggle.com/datasets/toniesteves/desharnais-dataset
