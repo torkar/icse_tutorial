@@ -1,3 +1,7 @@
+# This R file differs from the Rmd and html files.
+# This is a improvement over the Rmd etc. used in a research course
+# autumn 2022.
+
 library(rethinking) # math-like model specification language
 library(foreign) # for loading funky data files install.packages("foreign")
 
@@ -80,7 +84,7 @@ plot(compare(m_cp, m_np, m_pp))
 # In short, no model is really significantly better
 
 ###############################################################################
-# Step 4 Inference
+# Step 5 Inference
 #
 ##############################################################################
 # We're interested to look at the effect Language has on effort.
