@@ -4,8 +4,11 @@
 library(rethinking) # math-like model specification language
 library(foreign) # for loading funky data files install.packages("foreign")
 
-# load data file from PROMISE (Sayyad & Menzies), contributed by Shepperd
-d <- read.arff("data/desharnais.arff")
+# d/l from PROMISE (Sayyad & Menzies), contributed by Martin Shepperd
+download.file("http://promise.site.uottawa.ca/SERepository/datasets/desharnais.arff", # nolint
+                "desharnais.arff")
+
+d <- read.arff("desharnais.arff")
 
 # lots of juicy stuff here
 str(d)
@@ -75,7 +78,7 @@ m_pp <- ulam(
     sigma_l ~ exponential(1),
     phi ~ exponential(1)
   ), data = d, cores = 4, chains = 4, cmdstan = TRUE, log_lik = TRUE,
-      iter = 5e3, control = list(adapt_delta = 0.95)
+      iter = 5e3, control = list(adapt_delta = 0.99)
 )
 
 ###############################################################################
@@ -114,7 +117,7 @@ exp(mean(post_pp$a) + mean(post_pp$a_lang[, 3])) -
 sim_np <- sim(m_np)
 sim_pp <- sim(m_pp)
 mean(sim_np - sim_pp)
-# So m_np predicts >5-30h higher on the outcome scale xD
+# So m_np predicts -20/+20 higher on the outcome scale xD
 
 # Compare all combinations of languages, but let's first look at
 # diff between language 1 and 2.
