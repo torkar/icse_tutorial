@@ -53,8 +53,8 @@ m_cp <- ulam(
   alist(
     Effort ~ dgampois(lambda, phi),
     log(lambda) <- alpha,
-    alpha ~ normal(0, 2),
-    phi ~ exponential(1)
+    alpha ~ dnorm(0, 2),
+    phi ~ dexp(1)
   ), data = d, cores = 4, chains = 4, cmdstan = TRUE, log_lik = TRUE, iter = 5e3
 )
 
@@ -62,9 +62,9 @@ m_np <- ulam(
   alist(
     Effort ~ dgampois(lambda, phi),
     log(lambda) <- a + a_lang[Language],
-    a ~ normal(0, 2),
-    a_lang[Language] ~ normal(0, 1),
-    phi ~ exponential(1)
+    a ~ dnorm(0, 2),
+    a_lang[Language] ~ dnorm(0, 1),
+    phi ~ dexp(1)
   ), data = d, cores = 4, chains = 4, cmdstan = TRUE, log_lik = TRUE, iter = 5e3
 )
 
@@ -72,11 +72,11 @@ m_pp <- ulam(
   alist(
     Effort ~ dgampois(lambda, phi),
     log(lambda) <- a + a_lang[Language],
-    a ~ normal(0, 3),
-    a_lang[Language] ~ normal(mu_l, sigma_l),
-    mu_l ~ normal(0, 1),
-    sigma_l ~ exponential(1),
-    phi ~ exponential(1)
+    a ~ dnorm(0, 3),
+    a_lang[Language] ~ dnorm(mu_l, sigma_l),
+    mu_l ~ dnorm(0, 1),
+    sigma_l ~ dexp(1),
+    phi ~ dexp(1)
   ), data = d, cores = 4, chains = 4, cmdstan = TRUE, log_lik = TRUE,
       iter = 5e3, control = list(adapt_delta = 0.99)
 )
